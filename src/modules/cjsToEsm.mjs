@@ -1,11 +1,13 @@
-import path from 'path'
+import { join, sep } from 'path'
+import url from 'url'
 import fs from 'fs/promises'
 import { release, version } from 'os'
 import { createServer as createServerHttp }  from 'http';
-await import('./files/c.js')
+
+const scriptPath = join(...process.argv[1].split(sep).slice(0, -1), 'files', 'c.js')
+await import(url.pathToFileURL(scriptPath))
 
 const random = Math.random();
-
 let unknownObject;
 
 // _Attention_ in this task Im using both import() (as I see it a more correct deсision according to task text because it's ECMAScript way)
@@ -15,18 +17,20 @@ let unknownObject;
 
 if (random > 0.5) {
     // First way that shows extra warning but works as expected
-    unknownObject = (await import('./files/b.json', { assert: { type: "json" } })).default;
+    const jsonPath = join(...process.argv[1].split(sep).slice(0, -1), 'files', 'b.json')
+    unknownObject = (await import(url.pathToFileURL(jsonPath), { assert: { type: "json" } })).default;
 } else {
     // Second way
-    unknownObject = JSON.parse(await fs.readFile('./files/a.json'))
+    const jsonPath = join(...process.argv[1].split(sep).slice(0, -1), 'files', 'a.json')
+    unknownObject = JSON.parse(await fs.readFile(jsonPath))
 }
 
 console.log(`Release ${release()}`);
 console.log(`Version ${version()}`);
-console.log(`Path segment separator is "${path.sep}"`);
+console.log(`Path segment separator is "${sep}"`);
 
 console.log(`Path to current file is ${process.argv[1]}`);
-console.log(`Path to current directory is ${process.argv[1].split(path.sep).slice(0, -1).join(path.sep)}`);
+console.log(`Path to current directory is ${process.argv[1].split(sep).slice(0, -1).join(sep)}`);
 
 const myServer = createServerHttp((_, res) => {
     res.end('Request accepted');
